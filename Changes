@@ -1,6 +1,9 @@
-2004-10-17 Mattias Holmlund
+2004-10-24 Mattias Holmlund
 
   Version 0.4
+
+  Renamed from HTTP::TransparentCache to HTTP::Cache::Transparent
+  on request from Brian D Foy on the modules@perl.org list.
 
   Add support for ranges. Added test-program from Nigel Horne.
 
