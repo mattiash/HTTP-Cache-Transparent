@@ -361,7 +361,7 @@ sub remove_old_entries
     my @files = glob("*");
     foreach my $file (@files)
     {
-      if( $file !~ m%/^[0-9a-f]{32}$% )
+      if( $file !~ m%^[0-9a-f]{32}$% )
       {
         print STDERR "HTTP::Cache::Transparent: Unknown file found in cache directory: $basepath$file\n";
       }
