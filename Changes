@@ -1,0 +1,22 @@
+2004-10-17 Mattias Holmlund
+
+  Version 0.4
+
+  Add support for ranges. Added test-program from Nigel Horne.
+
+2004-10-15 Mattias Holmlund
+
+  Version 0.3
+
+  Support for libwww < 5.800
+
+  Only cache entries with response-code OK. 
+  Never delete files in cache with an invalid filename. 
+  Document cache format.
+
+2004-10-11 Mattias Holmlund
+  
+  Release 0.2
+
+  Support initialization via use directive.
+  Lower perl requirements to Perl 5.6.1.
