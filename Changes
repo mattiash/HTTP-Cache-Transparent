@@ -1,3 +1,10 @@
+2004-12-08 Mattias Holmlund
+
+  Version 0.5
+
+  Handle spaces in the path to the cache-dir. 
+  Handle multiple calls to init() without failing.
+
 2004-10-24 Mattias Holmlund
 
   Version 0.4
