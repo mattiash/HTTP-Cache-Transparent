@@ -79,6 +79,7 @@ contain files created by HTTP::Cache::Transparent.
 
 =cut 
 
+my $initialized = 0;
 sub init
 {
   my( $arg ) = @_;
@@ -101,9 +102,9 @@ sub init
   # get-method that bypasses LWP::UserAgent. 
   $LWP::Simple::FULL_LWP++;
 
+  unless ($initialized++) {
   $org_simple_request = \&LWP::UserAgent::simple_request;
 
-  {
     no warnings;
     *LWP::UserAgent::simple_request = \&simple_request_cache
   }
