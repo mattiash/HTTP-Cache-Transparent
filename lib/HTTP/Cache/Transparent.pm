@@ -2,7 +2,7 @@ package HTTP::Cache::Transparent;
 
 use strict;
 
-our $VERSION = '0.5';
+our $VERSION = '0.6pre';
 
 =head1 NAME
 
@@ -84,7 +84,7 @@ sub init
 {
   my( $arg ) = @_;
 
-  exists( $arg->{BasePath} ) 
+  defined( $arg->{BasePath} ) 
     or croak( "You must specify a BasePath" ); 
 
   $basepath = $arg->{BasePath};
@@ -353,7 +353,7 @@ sub urlhash
 
 sub remove_old_entries
 {
-  if( defined( $basepath ) )
+  if( defined( $basepath ) and -d( $basepath ) )
   {
     my $oldcwd = getcwd();
     chdir( $basepath );
