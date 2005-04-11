@@ -2,7 +2,7 @@ package HTTP::Cache::Transparent;
 
 use strict;
 
-our $VERSION = '0.6pre';
+our $VERSION = '0.6';
 
 =head1 NAME
 
@@ -89,8 +89,11 @@ sub init
 
   $basepath = $arg->{BasePath};
 
-  -d $basepath
-    or croak( "$basepath is not a directory" ); 
+  if( not -d $basepath )
+  {
+    mkdir($basepath) 
+      or croak( "$basepath is not a directory and cannot be created" ); 
+  }
 
   # Append a trailing slash if it is missing.
   $basepath =~ s%([^/])$%$1/%;
