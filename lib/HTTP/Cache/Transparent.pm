@@ -53,6 +53,12 @@ use IO::File;
 use File::Copy;
 use Cwd;
 
+# These are the response-headers that we should store in the
+# cache-entry and recreate when we return a cached response.
+my @cache_headers = qw/Content-Type Content-Encoding
+                       Content-Length Content-Range 
+                       Last-Modified/;
+
 my $basepath;
 my $maxage;
 my $verbose;
@@ -247,8 +253,11 @@ sub simple_request_cache
         $res->code( RC_OK );
       }
       
-      $res->header( 'Content-Range', $meta->{'Content-Range'} )
-        if defined( $meta->{'Content-Range' } );
+      foreach my $h (@cache_headers)
+      {
+        $res->header( $h, $meta->{$h} )
+        if defined( $meta->{ $h } );
+      }
 
       $res->header( "X-Cached", 1 );
       $res->header( "X-Content-Unchanged", 1 );
@@ -336,8 +345,12 @@ sub write_cache_entry
   $meta->{Range} = $req->header('Range')
     if defined( $req->header('Range') );
   $meta->{Code} = $res->code;
-  $meta->{'Content->Range'} = $res->header('Content-Range')
-    if defined $res->header('Content-Range');
+
+  foreach my $h (@cache_headers)
+  {
+    $meta->{$h} = $res->header( $h )
+      if defined $res->header( $h );
+  }
 
   write_meta( $fh, $meta );
 
