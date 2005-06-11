@@ -1,9 +1,13 @@
-2005-04-11 Mattias Holmlund
+2005-05-30 Mattias Holmlund
 
   Version 0.6
 
   Handle invalid cache-directories.
   Create the cache directory if it doesn't exist.
+  Store the headers Content-Type, Content-Length, Content-Encoding,
+  Content-Range and Last-Modified in the cache and restore them
+  when returning a cached response.
+  Fix bug in ETag cache handling.
 
 2004-12-08 Mattias Holmlund
 
