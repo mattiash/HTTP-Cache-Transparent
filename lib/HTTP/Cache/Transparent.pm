@@ -51,6 +51,7 @@ use HTTP::Status qw/RC_NOT_MODIFIED RC_OK RC_PARTIAL_CONTENT/;
 use Digest::MD5 qw/md5_hex/;
 use IO::File;
 use File::Copy;
+use File::Path;
 use Cwd;
 
 # These are the response-headers that we should store in the
@@ -97,8 +98,13 @@ sub init
 
   if( not -d $basepath )
   {
-    mkdir($basepath) 
-      or croak( "$basepath is not a directory and cannot be created" ); 
+    eval { mkpath($basepath) };
+    if ($@) 
+    {
+      print STDERR "$basepath is not a directory and cannot be created: $@\n";
+      exit 1;
+    }
+      
   }
 
   # Append a trailing slash if it is missing.
@@ -202,7 +208,7 @@ sub simple_request_cache
           $r->header( 'If-Modified-Since', $meta->{'Last-Modified'} )
             if exists( $meta->{'Last-Modified'} );
           
-          $r->header( 'ETag', $meta->{ETag} )
+          $r->header( 'If-None-Match', $meta->{ETag} )
             if( exists( $meta->{ETag} ) );
         }
       }
