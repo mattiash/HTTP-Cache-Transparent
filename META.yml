@@ -1,7 +1,7 @@
 # http://module-build.sourceforge.net/META-spec.html
 #XXXXXXX This is a prototype!!!  It will change in the future!!! XXXXX#
 name:         HTTP-Cache-Transparent
-version:      0.6pre
+version:      0.6
 version_from: lib/HTTP/Cache/Transparent.pm
 installdirs:  site
 requires:

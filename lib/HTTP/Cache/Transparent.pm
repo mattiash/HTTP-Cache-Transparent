@@ -172,19 +172,22 @@ sub simple_request_cache
   
   my $res;
 
-  print STDERR "Fetching " . $r->uri
-    if( $verbose );
-
   if( $r->method eq "GET" and
       not defined( $r->header( 'If-Modified-Since' ) ) and
       not defined( $content_cb ) )
   {
+    print STDERR "Fetching " . $r->uri
+      if( $verbose );
+    
     my $url = $r->uri->as_string;
     my $key = $url;
     $key .= "\n" . $r->header('Range')
       if defined $r->header('Range');
 
+#    print STDERR "basepath is tainted" if is_tainted($basepath);
     my $filename = $basepath . urlhash( $url );
+#    print STDERR "filename is tainted" if is_tainted($filename);
+
     my $fh;
     my $meta;
 
@@ -397,6 +400,11 @@ sub remove_old_entries
 
     chdir( $oldcwd );
   }
+}
+
+# From 'perldoc perlsec'
+sub is_tainted {
+  return ! eval { eval("#" . substr(join("", @_), 0, 0)); 1 };
 }
 
 =head1 INSPECTING CACHE BEHAVIOR
