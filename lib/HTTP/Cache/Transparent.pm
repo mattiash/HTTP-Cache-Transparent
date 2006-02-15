@@ -2,7 +2,7 @@ package HTTP::Cache::Transparent;
 
 use strict;
 
-our $VERSION = '0.6';
+our $VERSION = '0.7';
 
 =head1 NAME
 
@@ -63,6 +63,7 @@ my @cache_headers = qw/Content-Type Content-Encoding
 my $basepath;
 my $maxage;
 my $verbose;
+my $noupdate;
 
 my $org_simple_request;
 
@@ -78,6 +79,12 @@ hashref containing named arguments to the object.
                                # were last requested?
                                # Default is 8*24.
     Verbose   => 1,            # Print progress-messages to STDERR. 
+                               # Default is 0.
+    NoUpdate  => 15*60         # If a request is made for a url that has
+                               # been requested from the server less than
+                               # NoUpdate seconds ago, the response will
+                               # be generated from the cache without
+                               # contacting the server.
                                # Default is 0.
    } );
 
@@ -112,6 +119,7 @@ sub init
 
   $maxage = $arg->{MaxAge} || 8*24; 
   $verbose = $arg->{Verbose} || 0;
+  $noupdate = $arg->{NoUpdate} || 0;
 
   # Make sure that LWP::Simple does not use its simplified
   # get-method that bypasses LWP::UserAgent. 
@@ -221,6 +229,20 @@ sub simple_request_cache
       }
     }
 
+    if( defined( $meta->{'X-HCT-LastUpdated'} ) and
+        $noupdate > (time - $meta->{'X-HCT-LastUpdated'} ) )
+    {
+      print STDERR " from cache without checking with server.\n"
+        if $verbose;
+
+      $res = HTTP::Response->new( $meta->{Code} );
+      get_from_cachefile( $filename, $fh, $res, $meta );
+      $fh->close() 
+        if defined $fh;;
+
+      return $res;
+    }
+
     $res = &$org_simple_request( $self, $r );
 
     if( $res->code == RC_NOT_MODIFIED )
@@ -228,48 +250,14 @@ sub simple_request_cache
       print STDERR " from cache.\n" 
         if( $verbose );
 
-      my $content;
-      my $buf;
-      while ( $fh->read( $buf, 1024 ) > 0 )
-      {
-        $content .= $buf;
-      }
-      
-      $fh->close();
-      
-      # Set last-accessed for cache-entry.
-      my $mtime = time;
-      utime( $mtime, $mtime, $filename );
+      get_from_cachefile( $filename, $fh, $res, $meta );
 
-      # modify response
-      if( $HTTP::Message::VERSION >= 1.44 )
-      {
-        $res->content_ref( \$content );
-      }
-      else
-      {
-        $res->content( $content );
-      }
+      $fh->close() 
+        if defined $fh;;
 
-      # For HTTP::Cache::Transparent earlier than 0.4,
-      # there is no Code in the cache.
-      if( defined( $meta->{Code} ) )
-      {
-        $res->code( $meta->{Code} );
-      }
-      else
-      {
-        $res->code( RC_OK );
-      }
-      
-      foreach my $h (@cache_headers)
-      {
-        $res->header( $h, $meta->{$h} )
-        if defined( $meta->{ $h } );
-      }
-
-      $res->header( "X-Cached", 1 );
-      $res->header( "X-Content-Unchanged", 1 );
+      # We need to rewrite the cache-entry to update X-HCT-LastUpdated
+      write_cache_entry( $filename, $url, $r, $res );
+      return $res;
     }
     else
     {
@@ -302,6 +290,53 @@ sub simple_request_cache
   return $res;
 }
 
+sub get_from_cachefile
+{
+  my( $filename, $fh, $res, $meta ) = @_;
+
+  my $content;
+  my $buf;
+  while ( $fh->read( $buf, 1024 ) > 0 )
+  {
+    $content .= $buf;
+  }
+  
+  $fh->close();
+  
+  # Set last-accessed for cache-entry.
+  my $mtime = time;
+  utime( $mtime, $mtime, $filename );
+  
+  # modify response
+  if( $HTTP::Message::VERSION >= 1.44 )
+  {
+    $res->content_ref( \$content );
+  }
+  else
+  {
+    $res->content( $content );
+  }
+  
+  # For HTTP::Cache::Transparent earlier than 0.4,
+  # there is no Code in the cache.
+  if( defined( $meta->{Code} ) )
+  {
+    $res->code( $meta->{Code} );
+  }
+  else
+  {
+    $res->code( RC_OK );
+  }
+  
+  foreach my $h (@cache_headers)
+  {
+    $res->header( $h, $meta->{$h} )
+      if defined( $meta->{ $h } );
+  }
+  
+  $res->header( "X-Cached", 1 );
+  $res->header( "X-Content-Unchanged", 1 );
+}
 
 # Read metadata and position filehandle at start of data.
 sub read_meta
@@ -342,18 +377,18 @@ sub write_cache_entry
   my( $filename, $url, $req, $res ) = @_;
 
   my $out_filename = "$filename.tmp$$";
-  my $fh = new IO::File "> $out_filename";
+  my $fh = new IO::File "> $out_filename"
+    or die "Failed to write to $out_filename";
 
   my $meta;
   $meta->{Url} = $url;
-  $meta->{'Last-Modified'} = $res->header('Last-Modified')
-    if defined( $res->header('Last-Modified') );
   $meta->{ETag} = $res->header('ETag') 
     if defined( $res->header('ETag') );
   $meta->{MD5} = md5_hex( $res->content );
   $meta->{Range} = $req->header('Range')
     if defined( $req->header('Range') );
   $meta->{Code} = $res->code;
+  $meta->{'X-HCT-LastUpdated'} = time;
 
   foreach my $h (@cache_headers)
   {

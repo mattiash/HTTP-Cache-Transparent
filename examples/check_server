@@ -50,6 +50,7 @@ my( $url ) = @ARGV;
 HTTP::Cache::Transparent::init( { 
   BasePath  => "/tmp/cache", # Directory to store the cache in. 
   Verbose   => 1,            # Print messages to STDERR. Default is 0.
+  NoUpdate  => 60,           
 } );
 
 # Fetch once
