@@ -1,3 +1,11 @@
+2006-03-12 Mattias Holmlund
+
+  Version 0.7
+
+
+  Add NoUpdate option.
+  Remove Verbose output for HEAD requests.
+
 2005-05-30 Mattias Holmlund
 
   Version 0.6
