@@ -73,20 +73,26 @@ Initialize the HTTP cache. Takes a single parameter which is a
 hashref containing named arguments to the object.
 
   HTTP::Cache::Transparent::init( { 
-    BasePath  => "/tmp/cache", # Directory to store the cache in. 
-    MaxAge    => 8*24,         # How many hours should items be
-                               # kept in the cache after they 
-                               # were last requested?
-                               # Default is 8*24.
-    Verbose   => 1,            # Print progress-messages to STDERR. 
-                               # Default is 0.
-    NoUpdate  => 15*60         # If a request is made for a url that has
-                               # been requested from the server less than
-                               # NoUpdate seconds ago, the response will
-                               # be generated from the cache without
-                               # contacting the server.
-                               # Default is 0.
-   } );
+
+    # Directory to store the cache in. 
+    BasePath  => "/tmp/cache", 
+
+    # How many hours should items be kept in the cache 
+    # after they were last requested?
+    # Default is 8*24.
+    MaxAge    => 8*24,         
+
+    # Print progress-messages to STDERR. 
+    # Default is 0.
+    Verbose   => 1,
+  
+    # If a request is made for a url that has been requested 
+    # from the server less than NoUpdate seconds ago, the 
+    # response will be generated from the cache without
+    # contacting the server.
+    # Default is 0.
+    NoUpdate  => 15*60
+ } );
 
 The directory where the cache is stored must be writable. It must also only
 contain files created by HTTP::Cache::Transparent.
@@ -514,7 +520,8 @@ cache object was last requested by a user.
 
 =head1 AUTHOR
 
-Mattias Holmlund, E<lt>$firstname -at- $lastname -dot- se<gt>
+Mattias Holmlund, E<lt>$firstname -at- $lastname -dot- seE<gt>
+L<http://www.holmlund.se/mattias/>
 
 =head1 COPYRIGHT AND LICENSE
 
