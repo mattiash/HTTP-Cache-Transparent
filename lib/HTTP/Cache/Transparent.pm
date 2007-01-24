@@ -135,7 +135,7 @@ sub init
   $org_simple_request = \&LWP::UserAgent::simple_request;
 
     no warnings;
-    *LWP::UserAgent::simple_request = \&simple_request_cache
+    *LWP::UserAgent::simple_request = \&_simple_request_cache
   }
 }
 
@@ -177,10 +177,10 @@ sub import
 
 END
 {
-  remove_old_entries();
+  _remove_old_entries();
 }
 
-sub simple_request_cache
+sub _simple_request_cache
 {
   my($self, $r, $content_cb, $read_size_hint) = @_;
   
@@ -198,9 +198,7 @@ sub simple_request_cache
     $key .= "\n" . $r->header('Range')
       if defined $r->header('Range');
 
-#    print STDERR "basepath is tainted" if is_tainted($basepath);
-    my $filename = $basepath . urlhash( $url );
-#    print STDERR "filename is tainted" if is_tainted($filename);
+    my $filename = $basepath . _urlhash( $url );
 
     my $fh;
     my $meta;
@@ -210,7 +208,7 @@ sub simple_request_cache
       $fh = new IO::File "< $filename"
         or die "Failed to read from $filename";
 
-      $meta = read_meta( $fh );
+      $meta = _read_meta( $fh );
       
       if( $meta->{Url} eq $url )
       {
@@ -242,7 +240,7 @@ sub simple_request_cache
         if $verbose;
 
       $res = HTTP::Response->new( $meta->{Code} );
-      get_from_cachefile( $filename, $fh, $res, $meta );
+      _get_from_cachefile( $filename, $fh, $res, $meta );
       $fh->close() 
         if defined $fh;;
 
@@ -256,13 +254,13 @@ sub simple_request_cache
       print STDERR " from cache.\n" 
         if( $verbose );
 
-      get_from_cachefile( $filename, $fh, $res, $meta );
+      _get_from_cachefile( $filename, $fh, $res, $meta );
 
       $fh->close() 
         if defined $fh;;
 
       # We need to rewrite the cache-entry to update X-HCT-LastUpdated
-      write_cache_entry( $filename, $url, $r, $res );
+      _write_cache_entry( $filename, $url, $r, $res );
       return $res;
     }
     else
@@ -281,7 +279,7 @@ sub simple_request_cache
       print STDERR " from server.\n"
         if( $verbose );
 
-      write_cache_entry( $filename, $url, $r, $res )
+      _write_cache_entry( $filename, $url, $r, $res )
         if( $res->code == RC_OK or
             $res->code == RC_PARTIAL_CONTENT );
     }
@@ -296,7 +294,7 @@ sub simple_request_cache
   return $res;
 }
 
-sub get_from_cachefile
+sub _get_from_cachefile
 {
   my( $filename, $fh, $res, $meta ) = @_;
 
@@ -345,7 +343,7 @@ sub get_from_cachefile
 }
 
 # Read metadata and position filehandle at start of data.
-sub read_meta
+sub _read_meta
 {
   my( $fh ) = @_;
   my %meta;
@@ -366,7 +364,7 @@ sub read_meta
 }
 
 # Write metadata and position filehandle where data should be written.
-sub write_meta
+sub _write_meta
 {
   my( $fh, $meta ) = @_;
 
@@ -378,7 +376,7 @@ sub write_meta
   print $fh "\n";
 }
 
-sub write_cache_entry
+sub _write_cache_entry
 {
   my( $filename, $url, $req, $res ) = @_;
 
@@ -402,7 +400,7 @@ sub write_cache_entry
       if defined $res->header( $h );
   }
 
-  write_meta( $fh, $meta );
+  _write_meta( $fh, $meta );
 
   print $fh $res->content;
   $fh->close;
@@ -410,14 +408,14 @@ sub write_cache_entry
   move( $out_filename, $filename );
 }
 
-sub urlhash
+sub _urlhash
 {
   my( $url ) = @_;
 
   return md5_hex( $url );
 }
 
-sub remove_old_entries
+sub _remove_old_entries
 {
   if( defined( $basepath ) and -d( $basepath ) )
   {
@@ -441,11 +439,6 @@ sub remove_old_entries
 
     chdir( $oldcwd );
   }
-}
-
-# From 'perldoc perlsec'
-sub is_tainted {
-  return ! eval { eval("#" . substr(join("", @_), 0, 0)); 1 };
 }
 
 =head1 INSPECTING CACHE BEHAVIOR
