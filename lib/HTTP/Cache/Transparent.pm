@@ -64,6 +64,7 @@ my $basepath;
 my $maxage;
 my $verbose;
 my $noupdate;
+my $approvecontent;
 
 my $org_simple_request;
 
@@ -91,7 +92,17 @@ hashref containing named arguments to the object.
     # response will be generated from the cache without
     # contacting the server.
     # Default is 0.
-    NoUpdate  => 15*60
+    NoUpdate  => 15*60,
+
+    # When a url has been downloaded and the response indicates that
+    # has been modified compared to the content in the cache, 
+    # the ApproveContent callback is called with the HTTP::Response.
+    # The callback shall return true if the response shall be used and
+    # stored in the cache or false if the response shall be discarded
+    # and the response in the cache used instead.
+    # This mechanism can be used to work around servers that return errors
+    # intermittently. The default is to accept all responses.
+    ApproveContent => sub { return $_[0]->is_success },
  } );
 
 The directory where the cache is stored must be writable. It must also only
@@ -126,6 +137,7 @@ sub init
   $maxage = $arg->{MaxAge} || 8*24; 
   $verbose = $arg->{Verbose} || 0;
   $noupdate = $arg->{NoUpdate} || 0;
+  $approvecontent = $arg->{ApproveContent} || sub { return 1; };
 
   # Make sure that LWP::Simple does not use its simplified
   # get-method that bypasses LWP::UserAgent. 
@@ -263,6 +275,21 @@ sub _simple_request_cache
       _write_cache_entry( $filename, $url, $r, $res );
       return $res;
     }
+    elsif( defined( $meta->{'X-HCT-LastUpdated'} ) 
+	   and not &{$approvecontent}( $res ) )
+    {
+      print STDERR " from cache since the response was not approved.\n" 
+        if( $verbose );
+
+      _get_from_cachefile( $filename, $fh, $res, $meta );
+
+      $fh->close() 
+        if defined $fh;;
+
+      # Do NOT update the cache!
+
+      return $res;
+    }      
     else
     {
       $fh->close() 
