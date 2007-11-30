@@ -111,8 +111,7 @@ contain files created by HTTP::Cache::Transparent.
 =cut 
 
 my $initialized = 0;
-sub init
-{
+sub init {
   my( $arg ) = @_;
 
   defined( $arg->{BasePath} ) 
@@ -120,15 +119,12 @@ sub init
 
   $basepath = $arg->{BasePath};
 
-  if( not -d $basepath )
-  {
+  if( not -d $basepath ) {
     eval { mkpath($basepath) };
-    if ($@) 
-    {
+    if ($@) {
       print STDERR "$basepath is not a directory and cannot be created: $@\n";
       exit 1;
     }
-      
   }
 
   # Append a trailing slash if it is missing.
@@ -179,29 +175,25 @@ cache without changing myscript.pl
 
 =cut 
 
-sub import
-{
+sub import {
   my( $module, %args ) = @_;
   return if (scalar(keys(%args)) == 0);
 
   HTTP::Cache::Transparent::init( \%args );
 }
 
-END
-{
+END {
   _remove_old_entries();
 }
 
-sub _simple_request_cache
-{
+sub _simple_request_cache {
   my($self, $r, $content_cb, $read_size_hint) = @_;
   
   my $res;
 
   if( $r->method eq "GET" and
       not defined( $r->header( 'If-Modified-Since' ) ) and
-      not defined( $content_cb ) )
-  {
+      not defined( $content_cb ) ) {
     print STDERR "Fetching " . $r->uri
       if( $verbose );
     
@@ -215,23 +207,20 @@ sub _simple_request_cache
     my $fh;
     my $meta;
 
-    if( -s $filename )
-    {
+    if( -s $filename ) {
       $fh = new IO::File "< $filename"
         or die "Failed to read from $filename";
 
       $meta = _read_meta( $fh );
       
-      if( $meta->{Url} eq $url )
-      {
+      if( $meta->{Url} eq $url ) {
         $meta->{'Range'} = "" 
           unless defined( $meta->{'Range'} );
 
         # Check that the Range is the same for this request as 
         # for the one in the cache.
         if( (not defined( $r->header( 'Range' ) ) ) or
-            $r->header( 'Range' ) eq $meta->{'Range'} )
-        {
+            $r->header( 'Range' ) eq $meta->{'Range'} ) {
           $r->header( 'If-Modified-Since', $meta->{'Last-Modified'} )
             if exists( $meta->{'Last-Modified'} );
           
@@ -239,15 +228,13 @@ sub _simple_request_cache
             if( exists( $meta->{ETag} ) );
         }
       }
-      else
-      {
+      else {
         warn "Cache collision: $url and $meta->{Url} have the same md5sum";
       }
     }
 
     if( defined( $meta->{'X-HCT-LastUpdated'} ) and
-        $noupdate > (time - $meta->{'X-HCT-LastUpdated'} ) )
-    {
+        $noupdate > (time - $meta->{'X-HCT-LastUpdated'} ) ) {
       print STDERR " from cache without checking with server.\n"
         if $verbose;
 
@@ -261,8 +248,7 @@ sub _simple_request_cache
 
     $res = &$org_simple_request( $self, $r );
 
-    if( $res->code == RC_NOT_MODIFIED )
-    {
+    if( $res->code == RC_NOT_MODIFIED ) {
       print STDERR " from cache.\n" 
         if( $verbose );
 
@@ -276,8 +262,7 @@ sub _simple_request_cache
       return $res;
     }
     elsif( defined( $meta->{'X-HCT-LastUpdated'} ) 
-	   and not &{$approvecontent}( $res ) )
-    {
+	   and not &{$approvecontent}( $res ) ) {
       print STDERR " from cache since the response was not approved.\n" 
         if( $verbose );
 
@@ -290,14 +275,12 @@ sub _simple_request_cache
 
       return $res;
     }      
-    else
-    {
+    else {
       $fh->close() 
         if defined $fh;;
 
       if( defined( $meta->{MD5} ) and 
-                   md5_hex( $res->content ) eq $meta->{MD5} )
-      {
+                   md5_hex( $res->content ) eq $meta->{MD5} ) {
         $res->header( "X-Content-Unchanged", 1 );
         print STDERR " unchanged"
           if( $verbose );
@@ -311,8 +294,7 @@ sub _simple_request_cache
             $res->code == RC_PARTIAL_CONTENT );
     }
   }
-  else
-  {
+  else {
     # We won't try to cache this request. 
     $res =  &$org_simple_request( $self, $r, 
                                   $content_cb, $read_size_hint );
@@ -321,14 +303,12 @@ sub _simple_request_cache
   return $res;
 }
 
-sub _get_from_cachefile
-{
+sub _get_from_cachefile {
   my( $filename, $fh, $res, $meta ) = @_;
 
   my $content;
   my $buf;
-  while ( $fh->read( $buf, 1024 ) > 0 )
-  {
+  while ( $fh->read( $buf, 1024 ) > 0 ) {
     $content .= $buf;
   }
   
@@ -339,28 +319,23 @@ sub _get_from_cachefile
   utime( $mtime, $mtime, $filename );
   
   # modify response
-  if( $HTTP::Message::VERSION >= 1.44 )
-  {
+  if( $HTTP::Message::VERSION >= 1.44 ) {
     $res->content_ref( \$content );
   }
-  else
-  {
+  else {
     $res->content( $content );
   }
   
   # For HTTP::Cache::Transparent earlier than 0.4,
   # there is no Code in the cache.
-  if( defined( $meta->{Code} ) )
-  {
+  if( defined( $meta->{Code} ) ) {
     $res->code( $meta->{Code} );
   }
-  else
-  {
+  else {
     $res->code( RC_OK );
   }
   
-  foreach my $h (@cache_headers)
-  {
+  foreach my $h (@cache_headers) {
     $res->header( $h, $meta->{$h} )
       if defined( $meta->{ $h } );
   }
@@ -370,41 +345,34 @@ sub _get_from_cachefile
 }
 
 # Read metadata and position filehandle at start of data.
-sub _read_meta
-{
+sub _read_meta {
   my( $fh ) = @_;
   my %meta;
 
   my( $key, $value );
-  do
-  {
+  do {
     my $line = <$fh>;
     ( $key, $value ) = ($line =~ /(\S+)\s+(.*)[\n\r]*/);
 
     $meta{$key} = $value
       if( defined $value );
-
-  }
-  while( defined( $value ) );
+  } while( defined( $value ) );
 
   return \%meta;
 }
 
 # Write metadata and position filehandle where data should be written.
-sub _write_meta
-{
+sub _write_meta {
   my( $fh, $meta ) = @_;
 
-  foreach my $key (sort keys( %{$meta} ) )
-  {
+  foreach my $key (sort keys( %{$meta} ) ) {
     print $fh "$key $meta->{$key}\n";
   }
   
   print $fh "\n";
 }
 
-sub _write_cache_entry
-{
+sub _write_cache_entry {
   my( $filename, $url, $req, $res ) = @_;
 
   my $out_filename = "$filename.tmp$$";
@@ -421,8 +389,7 @@ sub _write_cache_entry
   $meta->{Code} = $res->code;
   $meta->{'X-HCT-LastUpdated'} = time;
 
-  foreach my $h (@cache_headers)
-  {
+  foreach my $h (@cache_headers) {
     $meta->{$h} = $res->header( $h )
       if defined $res->header( $h );
   }
@@ -435,29 +402,23 @@ sub _write_cache_entry
   move( $out_filename, $filename );
 }
 
-sub _urlhash
-{
+sub _urlhash {
   my( $url ) = @_;
 
   return md5_hex( $url );
 }
 
-sub _remove_old_entries
-{
-  if( defined( $basepath ) and -d( $basepath ) )
-  {
+sub _remove_old_entries {
+  if( defined( $basepath ) and -d( $basepath ) ) {
     my $oldcwd = getcwd();
     chdir( $basepath );
 
     my @files = glob("*");
-    foreach my $file (@files)
-    {
-      if( $file !~ m%^[0-9a-f]{32}$% )
-      {
+    foreach my $file (@files) {
+      if( $file !~ m%^[0-9a-f]{32}$% ) {
         print STDERR "HTTP::Cache::Transparent: Unknown file found in cache directory: $basepath$file\n";
       }
-      elsif( (-M($file))*24 > $maxage )
-      {
+      elsif( (-M($file))*24 > $maxage ) {
         print STDERR "Deleting $file.\n"
           if( $verbose );
         unlink( $file );
@@ -545,7 +506,7 @@ L<http://www.holmlund.se/mattias/>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2004 by Mattias Holmlund
+Copyright (C) 2004-2007 by Mattias Holmlund
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.4 or,
