@@ -1,7 +1,10 @@
+2007-12-12 Mattias Holmlund
+
   Version 1.0
 
   Add ApproveContent option.
   Add pod-tests.
+  Mark internal methods with leading underscore.
 
 2006-03-12 Mattias Holmlund
 
