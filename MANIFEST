@@ -3,7 +3,10 @@ Makefile.PL
 MANIFEST
 README
 t/HTTP-Cache-Transparent.t
+t/pod.t
+t/pod-coverage.t
 lib/HTTP/Cache/Transparent.pm
 examples/check_server
+examples/check_server_approve
 examples/test-range
 META.yml                                 Module meta-data (added by MakeMaker)
