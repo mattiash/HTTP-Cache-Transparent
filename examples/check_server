@@ -10,8 +10,9 @@ if( scalar( @ARGV ) != 1 )
   print << "EOD";
 usage: check_server <url>
 
-Fetches a url via the HTTP::Cache::Transparent module in verbose mode. The url is
-fetched twice to see if the server supports caching or not.
+Fetches a url via the HTTP::Cache::Transparent module in verbose
+mode. The url is fetched twice to see if the server supports caching
+or not.
 
 The first line of output will say that the url is fetched from the
 server (unless you have fetched this url before and it is already in
@@ -50,7 +51,6 @@ my( $url ) = @ARGV;
 HTTP::Cache::Transparent::init( { 
   BasePath  => "/tmp/cache", # Directory to store the cache in. 
   Verbose   => 1,            # Print messages to STDERR. Default is 0.
-  NoUpdate  => 60,           
 } );
 
 # Fetch once
