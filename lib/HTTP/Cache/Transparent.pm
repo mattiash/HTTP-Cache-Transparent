@@ -2,7 +2,7 @@ package HTTP::Cache::Transparent;
 
 use strict;
 
-our $VERSION = '0.7';
+our $VERSION = '1.0';
 
 =head1 NAME
 
@@ -503,6 +503,11 @@ cache object was last requested by a user.
 
 Mattias Holmlund, E<lt>$firstname -at- $lastname -dot- seE<gt>
 L<http://www.holmlund.se/mattias/>
+
+=head1 GIT REPOSITORY
+
+A git repository containing the source for this module can be found
+via http://git.holmlund.se/
 
 =head1 COPYRIGHT AND LICENSE
 

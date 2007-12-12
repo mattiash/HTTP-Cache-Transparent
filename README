@@ -1,5 +1,5 @@
-HTTP-Cache-Transparent version 0.4
-============================
+HTTP-Cache-Transparent
+======================
 
 HTTP::Cache::Transparent is an implementation of http get that keeps a local 
 cache of fetched pages to avoid fetching the same data from the server 
@@ -37,9 +37,14 @@ All http-requests are made through the LWP module. Data is stored on disk
 by the Storable module. Digest::MD5 is used for creating a hash of the
 url.
 
+GIT REPOSITORY
+
+A git repository with the sourcecode for HTTP::Cache::Transparent can
+be found at http://git.holmlund.se.
+
 COPYRIGHT AND LICENCE
 
-Copyright (C) 2004 by Mattias Holmlund
+Copyright (C) 2004-2007 by Mattias Holmlund
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.8.4 or,
