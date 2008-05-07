@@ -279,8 +279,11 @@ sub _simple_request_cache {
       $fh->close() 
         if defined $fh;;
 
+      my $content = $res->content;
+      $content = "" if not defined $content;
+
       if( defined( $meta->{MD5} ) and 
-                   md5_hex( $res->content ) eq $meta->{MD5} ) {
+                   md5_hex( $content ) eq $meta->{MD5} ) {
         $res->header( "X-Content-Unchanged", 1 );
         print STDERR " unchanged"
           if( $verbose );
@@ -383,7 +386,11 @@ sub _write_cache_entry {
   $meta->{Url} = $url;
   $meta->{ETag} = $res->header('ETag') 
     if defined( $res->header('ETag') );
-  $meta->{MD5} = md5_hex( $res->content );
+
+  my $content = $res->content;
+  $content = "" if not defined $content;
+
+  $meta->{MD5} = md5_hex( $content );
   $meta->{Range} = $req->header('Range')
     if defined( $req->header('Range') );
   $meta->{Code} = $res->code;
@@ -396,7 +403,7 @@ sub _write_cache_entry {
 
   _write_meta( $fh, $meta );
 
-  print $fh $res->content;
+  print $fh $content;
   $fh->close;
 
   move( $out_filename, $filename );
