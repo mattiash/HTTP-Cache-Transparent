@@ -239,6 +239,7 @@ sub _simple_request_cache {
         if $verbose;
 
       $res = HTTP::Response->new( $meta->{Code} );
+      $res->request($r);
       _get_from_cachefile( $filename, $fh, $res, $meta );
       $fh->close() 
         if defined $fh;;
