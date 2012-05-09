@@ -46,7 +46,7 @@ LWP::Request methods) should be used as usual.
 
 use Carp;
 use LWP::UserAgent;
-use HTTP::Status qw/RC_NOT_MODIFIED RC_OK RC_PARTIAL_CONTENT/;
+use HTTP::Status qw/RC_NOT_MODIFIED RC_OK RC_PARTIAL_CONTENT status_message/;
 
 use Digest::MD5 qw/md5_hex/;
 use IO::File;
@@ -338,6 +338,7 @@ sub _get_from_cachefile {
   else {
     $res->code( RC_OK );
   }
+  $res->message(status_message($res->code) || "Unknown code");
   
   foreach my $h (@cache_headers) {
     $res->header( $h, $meta->{$h} )
