@@ -318,6 +318,8 @@ sub _get_from_cachefile {
   
   $fh->close();
   
+  $content = "" if not defined $content;
+
   # Set last-accessed for cache-entry.
   my $mtime = time;
   utime( $mtime, $mtime, $filename );
