@@ -429,10 +429,15 @@ sub _remove_old_entries {
       if( $file !~ m%^[0-9a-f]{32}$% ) {
         print STDERR "HTTP::Cache::Transparent: Unknown file found in cache directory: $basepath$file\n";
       }
-      elsif( (-M($file))*24 > $maxage ) {
-        print STDERR "Deleting $file.\n"
-          if( $verbose );
-        unlink( $file );
+      else {
+	  my $age = (-M $file);
+	  # The file may have disappeared if another process has cleaned
+	  # the cache.
+	  if( defined($age) && ( $age*24 > $maxage ) ) {
+	      print STDERR "Deleting $file.\n"
+		  if( $verbose );
+	      unlink( $file );
+	  }
       }
     }
 
