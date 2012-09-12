@@ -410,7 +410,7 @@ sub _write_cache_entry {
   print $fh $content;
   $fh->close;
 
-  move( $out_filename, $filename );
+  move( $out_filename, $filename ) || unlink $out_filename;
 }
 
 sub _urlhash {
