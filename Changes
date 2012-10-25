@@ -1,3 +1,24 @@
+2012-10-25 Mattias Holmlund
+
+  Version 1.1
+
+    Unlink temporary cachefiles if we fail to give them a proper name
+      Resolves https://rt.cpan.org/Ticket/Display.html?id=60065
+
+    Handle multiple simultaneous cache cleanups
+      Hopefully resolves https://rt.cpan.org/Public/Bug/Display.html?id=77015
+
+    Handle caching of zero-size documents
+      Resolves https://rt.cpan.org/Public/Bug/Display.html?id=76785
+
+    Populate $response->message with the default message for the code
+      Patch from Graham Barr
+
+    Ensure response has access to request when fetching from cache
+      Patch from Graham Barr.
+
+    Handle undefined content from servers.
+
 2007-12-12 Mattias Holmlund
 
   Version 1.0
