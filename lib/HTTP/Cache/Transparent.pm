@@ -501,7 +501,12 @@ request and response. Therefore, if you request the same url repeatedly
 with different sets of headers (cookies, accept-encoding etc), and these
 headers affect the response from the server, the cache may return the
 wrong response.
- 
+
+=item -
+
+HTTP::Cache::Transparent has not been tested with threads, and will
+most likely not work if you use them.
+
 =back
 
 =head1 CACHE FORMAT
