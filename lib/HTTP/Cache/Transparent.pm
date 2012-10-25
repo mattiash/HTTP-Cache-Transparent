@@ -2,7 +2,7 @@ package HTTP::Cache::Transparent;
 
 use strict;
 
-our $VERSION = '1.0';
+our $VERSION = '1.1';
 
 =head1 NAME
 
