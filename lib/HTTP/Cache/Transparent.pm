@@ -243,6 +243,9 @@ sub _simple_request_cache {
       _get_from_cachefile( $filename, $fh, $res, $meta );
       $fh->close() 
         if defined $fh;;
+      
+      # Set X-No-Server-Contact header as content delivered without contact with external server  
+      $res->header( "X-No-Server-Contact", 1 );
 
       return $res;
     }
@@ -447,7 +450,7 @@ sub _remove_old_entries {
 
 =head1 INSPECTING CACHE BEHAVIOR
 
-The HTTP::Cache::Transparent inserts two special headers in the
+The HTTP::Cache::Transparent inserts three special headers in the
 HTTP::Response object. These can be accessed via the 
 HTTP::Response::header()-method.
 
@@ -464,6 +467,14 @@ This header is inserted and set to 1 if the content returned is the same
 as the content returned the last time this url was fetched. This header
 is always inserted and set to 1 when the response is delivered from 
 the cache.
+
+=item X-No-Server-Contact
+
+This header is inserted and set to 1 if the content returned has been
+delivered without any contact with the external server, i.e. no
+conditional or unconditional HTTP GET request has been sent, the content
+has been delivered directly from cache. This may be useful when seeking
+to control loading of the external server.
 
 =back
 
