@@ -2,7 +2,7 @@ package HTTP::Cache::Transparent;
 
 use strict;
 
-our $VERSION = '1.1';
+our $VERSION = '1.2';
 
 =head1 NAME
 
@@ -36,8 +36,8 @@ seamlessly cache the result of all requests that can be cached.
 
 HTTP::Cache::Transparent provides an init-method that sets the
 parameters for the cache and overloads a method in LWP::UserAgent
-to activate the cache.After init has been called, the normal 
-LWP-methods (LWP::Simple as well as the more full-fledged 
+to activate the cache.After init has been called, the normal
+LWP-methods (LWP::Simple as well as the more full-fledged
 LWP::Request methods) should be used as usual.
 
 =over 4
@@ -57,7 +57,7 @@ use Cwd;
 # These are the response-headers that we should store in the
 # cache-entry and recreate when we return a cached response.
 my @cache_headers = qw/Content-Type Content-Encoding
-                       Content-Length Content-Range 
+                       Content-Length Content-Range
                        Last-Modified/;
 
 my $basepath;
@@ -70,32 +70,32 @@ my $org_simple_request;
 
 =item init
 
-Initialize the HTTP cache. Takes a single parameter which is a 
+Initialize the HTTP cache. Takes a single parameter which is a
 hashref containing named arguments to the object.
 
-  HTTP::Cache::Transparent::init( { 
+  HTTP::Cache::Transparent::init( {
 
-    # Directory to store the cache in. 
-    BasePath  => "/tmp/cache", 
+    # Directory to store the cache in.
+    BasePath  => "/tmp/cache",
 
-    # How many hours should items be kept in the cache 
+    # How many hours should items be kept in the cache
     # after they were last requested?
     # Default is 8*24.
-    MaxAge    => 8*24,         
+    MaxAge    => 8*24,
 
-    # Print progress-messages to STDERR. 
+    # Print progress-messages to STDERR.
     # Default is 0.
     Verbose   => 1,
-  
-    # If a request is made for a url that has been requested 
-    # from the server less than NoUpdate seconds ago, the 
+
+    # If a request is made for a url that has been requested
+    # from the server less than NoUpdate seconds ago, the
     # response will be generated from the cache without
     # contacting the server.
     # Default is 0.
     NoUpdate  => 15*60,
 
     # When a url has been downloaded and the response indicates that
-    # has been modified compared to the content in the cache, 
+    # has been modified compared to the content in the cache,
     # the ApproveContent callback is called with the HTTP::Response.
     # The callback shall return true if the response shall be used and
     # stored in the cache or false if the response shall be discarded
@@ -108,14 +108,14 @@ hashref containing named arguments to the object.
 The directory where the cache is stored must be writable. It must also only
 contain files created by HTTP::Cache::Transparent.
 
-=cut 
+=cut
 
 my $initialized = 0;
 sub init {
   my( $arg ) = @_;
 
-  defined( $arg->{BasePath} ) 
-    or croak( "You must specify a BasePath" ); 
+  defined( $arg->{BasePath} )
+    or croak( "You must specify a BasePath" );
 
   $basepath = $arg->{BasePath};
 
@@ -130,13 +130,13 @@ sub init {
   # Append a trailing slash if it is missing.
   $basepath =~ s%([^/])$%$1/%;
 
-  $maxage = $arg->{MaxAge} || 8*24; 
+  $maxage = $arg->{MaxAge} || 8*24;
   $verbose = $arg->{Verbose} || 0;
   $noupdate = $arg->{NoUpdate} || 0;
   $approvecontent = $arg->{ApproveContent} || sub { return 1; };
 
   # Make sure that LWP::Simple does not use its simplified
-  # get-method that bypasses LWP::UserAgent. 
+  # get-method that bypasses LWP::UserAgent.
   $LWP::Simple::FULL_LWP++;
 
   unless ($initialized++) {
@@ -163,8 +163,8 @@ The advantage to using this method is that you can do
 
   perl -MHTTP::Cache::Transparent=BasePath,/tmp/cache myscript.pl
 
-or even set the environment variable PERL5OPT 
-  
+or even set the environment variable PERL5OPT
+
   PERL5OPT=-MHTTP::Cache::Transparent=BasePath,/tmp/cache
   myscript.pl
 
@@ -173,7 +173,7 @@ cache without changing myscript.pl
 
 =back
 
-=cut 
+=cut
 
 sub import {
   my( $module, %args ) = @_;
@@ -188,7 +188,7 @@ END {
 
 sub _simple_request_cache {
   my($self, $r, $content_cb, $read_size_hint) = @_;
-  
+
   my $res;
 
   if( $r->method eq "GET" and
@@ -196,7 +196,7 @@ sub _simple_request_cache {
       not defined( $content_cb ) ) {
     print STDERR "Fetching " . $r->uri
       if( $verbose );
-    
+
     my $url = $r->uri->as_string;
     my $key = $url;
     $key .= "\n" . $r->header('Range')
@@ -212,18 +212,18 @@ sub _simple_request_cache {
         or die "Failed to read from $filename";
 
       $meta = _read_meta( $fh );
-      
+
       if( $meta->{Url} eq $url ) {
-        $meta->{'Range'} = "" 
+        $meta->{'Range'} = ""
           unless defined( $meta->{'Range'} );
 
-        # Check that the Range is the same for this request as 
+        # Check that the Range is the same for this request as
         # for the one in the cache.
         if( (not defined( $r->header( 'Range' ) ) ) or
             $r->header( 'Range' ) eq $meta->{'Range'} ) {
           $r->header( 'If-Modified-Since', $meta->{'Last-Modified'} )
             if exists( $meta->{'Last-Modified'} );
-          
+
           $r->header( 'If-None-Match', $meta->{ETag} )
             if( exists( $meta->{ETag} ) );
         }
@@ -241,10 +241,10 @@ sub _simple_request_cache {
       $res = HTTP::Response->new( $meta->{Code} );
       $res->request($r);
       _get_from_cachefile( $filename, $fh, $res, $meta );
-      $fh->close() 
+      $fh->close()
         if defined $fh;;
-      
-      # Set X-No-Server-Contact header as content delivered without contact with external server  
+
+      # Set X-No-Server-Contact header as content delivered without contact with external server
       $res->header( "X-No-Server-Contact", 1 );
 
       return $res;
@@ -253,40 +253,40 @@ sub _simple_request_cache {
     $res = &$org_simple_request( $self, $r );
 
     if( $res->code == RC_NOT_MODIFIED ) {
-      print STDERR " from cache.\n" 
+      print STDERR " from cache.\n"
         if( $verbose );
 
       _get_from_cachefile( $filename, $fh, $res, $meta );
 
-      $fh->close() 
+      $fh->close()
         if defined $fh;;
 
       # We need to rewrite the cache-entry to update X-HCT-LastUpdated
       _write_cache_entry( $filename, $url, $r, $res );
       return $res;
     }
-    elsif( defined( $meta->{'X-HCT-LastUpdated'} ) 
+    elsif( defined( $meta->{'X-HCT-LastUpdated'} )
 	   and not &{$approvecontent}( $res ) ) {
-      print STDERR " from cache since the response was not approved.\n" 
+      print STDERR " from cache since the response was not approved.\n"
         if( $verbose );
 
       _get_from_cachefile( $filename, $fh, $res, $meta );
 
-      $fh->close() 
+      $fh->close()
         if defined $fh;;
 
       # Do NOT update the cache!
 
       return $res;
-    }      
+    }
     else {
-      $fh->close() 
+      $fh->close()
         if defined $fh;;
 
       my $content = $res->content;
       $content = "" if not defined $content;
 
-      if( defined( $meta->{MD5} ) and 
+      if( defined( $meta->{MD5} ) and
                    md5_hex( $content ) eq $meta->{MD5} ) {
         $res->header( "X-Content-Unchanged", 1 );
         print STDERR " unchanged"
@@ -302,8 +302,8 @@ sub _simple_request_cache {
     }
   }
   else {
-    # We won't try to cache this request. 
-    $res =  &$org_simple_request( $self, $r, 
+    # We won't try to cache this request.
+    $res =  &$org_simple_request( $self, $r,
                                   $content_cb, $read_size_hint );
   }
 
@@ -318,15 +318,15 @@ sub _get_from_cachefile {
   while ( $fh->read( $buf, 1024 ) > 0 ) {
     $content .= $buf;
   }
-  
+
   $fh->close();
-  
+
   $content = "" if not defined $content;
 
   # Set last-accessed for cache-entry.
   my $mtime = time;
   utime( $mtime, $mtime, $filename );
-  
+
   # modify response
   if( $HTTP::Message::VERSION >= 1.44 ) {
     $res->content_ref( \$content );
@@ -334,7 +334,7 @@ sub _get_from_cachefile {
   else {
     $res->content( $content );
   }
-  
+
   # For HTTP::Cache::Transparent earlier than 0.4,
   # there is no Code in the cache.
   if( defined( $meta->{Code} ) ) {
@@ -344,12 +344,12 @@ sub _get_from_cachefile {
     $res->code( RC_OK );
   }
   $res->message(status_message($res->code) || "Unknown code");
-  
+
   foreach my $h (@cache_headers) {
     $res->header( $h, $meta->{$h} )
       if defined( $meta->{ $h } );
   }
-  
+
   $res->header( "X-Cached", 1 );
   $res->header( "X-Content-Unchanged", 1 );
 }
@@ -378,7 +378,7 @@ sub _write_meta {
   foreach my $key (sort keys( %{$meta} ) ) {
     print $fh "$key $meta->{$key}\n";
   }
-  
+
   print $fh "\n";
 }
 
@@ -391,7 +391,7 @@ sub _write_cache_entry {
 
   my $meta;
   $meta->{Url} = $url;
-  $meta->{ETag} = $res->header('ETag') 
+  $meta->{ETag} = $res->header('ETag')
     if defined( $res->header('ETag') );
 
   my $content = $res->content;
@@ -451,21 +451,21 @@ sub _remove_old_entries {
 =head1 INSPECTING CACHE BEHAVIOR
 
 The HTTP::Cache::Transparent inserts three special headers in the
-HTTP::Response object. These can be accessed via the 
+HTTP::Response object. These can be accessed via the
 HTTP::Response::header()-method.
 
 =over 4
 
 =item X-Cached
 
-This header is inserted and set to 1 if the response is delivered from 
+This header is inserted and set to 1 if the response is delivered from
 the cache instead of from the server.
 
 =item X-Content-Unchanged
 
 This header is inserted and set to 1 if the content returned is the same
 as the content returned the last time this url was fetched. This header
-is always inserted and set to 1 when the response is delivered from 
+is always inserted and set to 1 when the response is delivered from
 the cache.
 
 =item X-No-Server-Contact
@@ -502,7 +502,7 @@ in a future version.
 =item -
 
 The support for Ranges is a bit primitive. It creates a new object in
-the cache for each unique combination of url and range. This will work ok 
+the cache for each unique combination of url and range. This will work ok
 as long as you always request the same range(s) for a url.
 
 =item -
@@ -524,8 +524,8 @@ most likely not work if you use them.
 
 The cache is stored on disk as one file per cached object. The filename
 is equal to the md5sum of the url and the Range-header if it exists.
-The file contains a set of 
-key/value-pairs with metadata (one entry per line) followed by a blank 
+The file contains a set of
+key/value-pairs with metadata (one entry per line) followed by a blank
 line and then the actual data returned by the server.
 
 The last modified date of the cache file is set to the time when the
