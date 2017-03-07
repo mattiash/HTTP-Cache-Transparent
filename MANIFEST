@@ -3,6 +3,7 @@ Makefile.PL
 MANIFEST
 README
 t/HTTP-Cache-Transparent.t
+t/cache.t
 t/pod.t
 t/pod-coverage.t
 lib/HTTP/Cache/Transparent.pm
