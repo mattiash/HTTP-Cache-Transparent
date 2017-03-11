@@ -1,3 +1,16 @@
+2017-03-11 Mattias Holmlund
+
+  Version 1.2.1
+
+    Added missing Changes entry for version 1.2. No other changes.
+
+2017-03-07 Mattias Holmlund
+
+  Version 1.2
+
+    Add X-No-Server-Contact header when the content returned has been
+      delivered without any contact with the external server
+
 2012-10-25 Mattias Holmlund
 
   Version 1.1
@@ -50,7 +63,7 @@
 
   Version 0.5
 
-  Handle spaces in the path to the cache-dir. 
+  Handle spaces in the path to the cache-dir.
   Handle multiple calls to init() without failing.
 
 2004-10-24 Mattias Holmlund
@@ -68,12 +81,12 @@
 
   Support for libwww < 5.800
 
-  Only cache entries with response-code OK. 
-  Never delete files in cache with an invalid filename. 
+  Only cache entries with response-code OK.
+  Never delete files in cache with an invalid filename.
   Document cache format.
 
 2004-10-11 Mattias Holmlund
-  
+
   Release 0.2
 
   Support initialization via use directive.
