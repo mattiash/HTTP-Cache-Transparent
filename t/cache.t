@@ -1,6 +1,7 @@
 use strict;
 use warnings;
 use Test::More;
+use Test::RequiresInternet ('www.example.com' => 80);
 
 use File::Temp 'tempdir';
 use LWP::Simple;
